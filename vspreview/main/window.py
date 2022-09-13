@@ -59,8 +59,8 @@ class MainWindow(AbstractMainWindow):
     BREAKING_CHANGES_VERSIONS = list[float]()
 
     # status bar
-    def STATUS_FRAME_PROP(self, prop: Any) -> str:
-        return 'Type: %s' % (prop['_PictType'].decode('utf-8') if '_PictType' in prop else '?')
+    STATUS_FRAME_PROP = lambda prop: 'Type: %s' % (prop['_PictType'].decode('utf-8') if '_PictType' in prop else '?')
+    STATUS_TEXT_FUNC_NAME = 'vsp_text'
 
     EVENT_POLICY = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
@@ -518,7 +518,15 @@ class MainWindow(AbstractMainWindow):
         for toolbar in self.toolbars:
             toolbar.on_current_frame_changed(frame)
 
-        self.statusbar.frame_props_label.setText(self.STATUS_FRAME_PROP(self.current_output.props))
+        text = ''
+        if MainWindow.STATUS_TEXT_FUNC_NAME in self.current_output.props:
+            frame = self.current_output.source.clip.get_frame(frame.value)
+            func = frame.props[MainWindow.STATUS_TEXT_FUNC_NAME]
+            if callable(func):
+                text = func(f=frame)
+        if text == '':
+            text = MainWindow.STATUS_FRAME_PROP(self.current_output.props)
+        self.statusbar.frame_props_label.setText(text)
 
     def switch_output(self, value: int | VideoOutput) -> None:
         if not self.outputs or len(self.outputs) == 0:
