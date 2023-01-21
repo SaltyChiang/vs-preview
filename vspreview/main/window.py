@@ -282,8 +282,8 @@ class MainWindow(AbstractMainWindow):
             if start_frame is not None:
                 self.switch_frame(Frame(start_frame))
 
-        with self.env:
-            vs.register_on_destroy(self.gc_collect)
+        # with self.env:
+        #     vs.register_on_destroy(self.gc_collect)
 
     @set_status_label('Loading...')
     def load_storage(self) -> None:
