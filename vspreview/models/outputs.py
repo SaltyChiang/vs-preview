@@ -34,6 +34,9 @@ class Outputs(Generic[T], QAbstractListModel, QYAMLObject):
         main.reload_signal.connect(self.clear_outputs)
 
         for i, vs_output in outputs.items():
+            if self.vs_type == vs.VideoOutputTuple:
+                if isinstance(vs_output, vs.VideoNode):
+                    vs_output = vs.VideoOutputTuple(vs_output, None, 0)
             if not isinstance(vs_output, self.vs_type):
                 continue
             try:
