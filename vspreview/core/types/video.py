@@ -356,9 +356,10 @@ class VideoOutput(AbstractYAMLObject):
             frame_image.setColorSpace(QColorSpace(QColorSpace.NamedColorSpace.SRgb))
             frame_image.convertToColorSpace(output_colorspace)
 
-        if not vs_frame.closed:
-            vs_frame.close()
-            del vs_frame
+        # if not vs_frame.closed:
+        #     vs_frame.close()
+        #     del vs_frame
+        vs_frame = None
 
         if self.prepared.alpha is None:
             qpixmap = QPixmap.fromImage(frame_image, Qt.ImageConversionFlag.NoFormatConversion)
