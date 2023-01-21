@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from abc import ABCMeta as NativeABCMeta
-from typing import Any, cast
+from typing import Any, TypeVar, cast
 
-from vstools import T
+T = TypeVar('T')
 
 
 class DummyAttribute:

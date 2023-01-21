@@ -6,7 +6,7 @@ from typing import Any, Mapping
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtMultimedia import QAudioDevice, QAudioFormat, QAudioOutput, QAudioSink
-from vstools import vs, CustomRuntimeError
+import vapoursynth as vs
 
 from ..abstracts import AbstractYAMLObject, main_window, try_load
 from .units import Frame, Time
@@ -60,7 +60,7 @@ class AudioOutput(AbstractYAMLObject):
         self.iodevice = self.qaudiosink.start()
 
         if self.iodevice is None:
-            raise CustomRuntimeError(
+            raise RuntimeError(
                 'The current QT version has a bug for dll loading, you need to go into '
                 'C:\\System32 and copy "mfplat.dll" into "mfplat.dll.dll".'
             )

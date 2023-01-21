@@ -5,12 +5,15 @@ import logging
 import re
 from functools import wraps
 from time import perf_counter_ns
-from typing import TYPE_CHECKING, Any, Callable, cast
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
 
 from PyQt6 import sip
 from PyQt6.QtCore import QEvent, QObject
 from PyQt6.QtWidgets import QApplication, QGraphicsScene
-from vstools import ColorRange, Matrix, Primaries, T, Transfer, vs
+import vapoursynth as vs
+T = TypeVar('T')
+
+from ..core.types.h265 import ColorRange, Matrix, Primaries, Transfer
 
 
 def print_var(var: Any) -> None:
@@ -139,10 +142,10 @@ def print_vs_output_colorspace_info(vs_output: vs.VideoNode) -> None:
     props = vs_output.get_frame(0).props
 
     logging.debug('Matrix: {}, Transfer: {}, Primaries: {}, Range: {}'.format(
-        Matrix.from_video(props) if '_Matrix' in props else None,
-        Transfer.from_video(props) if '_Transfer' in props else None,
-        Primaries.from_video(props) if '_Primaries' in props else None,
-        ColorRange.from_video(props) if '_ColorRange' in props else None,
+        Matrix(int(props['_Matrix'])).name if '_Matrix' in props else None,
+        Transfer(int(props['_Transfer'])).name if '_Transfer' in props else None,
+        Primaries(int(props['_Primaries'])).name if '_Primaries' in props else None,
+        ColorRange(int(props['_ColorRange'])).name if '_ColorRange' in props else None,
     ))
 
 

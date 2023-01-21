@@ -9,7 +9,7 @@ from weakref import WeakKeyDictionary
 from PyQt6.QtCore import QPoint, Qt
 from PyQt6.QtGui import QFont, QMouseEvent
 from PyQt6.QtWidgets import QGraphicsView, QLabel
-from vstools import vs
+import vapoursynth as vs
 
 from ...core import AbstractMainWindow, AbstractToolbar, PushButton, VideoOutput
 from .colorview import ColorView

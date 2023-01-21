@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence, cast, overload
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence, TypeVar, cast, overload
 
 from PyQt6.QtCore import QObject, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QClipboard, QKeySequence, QShortcut
@@ -16,7 +16,8 @@ from PyQt6.QtWidgets import (
     QLineEdit, QMainWindow, QProgressBar, QPushButton, QSpacerItem, QSpinBox, QStatusBar, QTableView,
     QVBoxLayout, QWidget
 )
-from vstools import T, vs
+import vapoursynth as vs
+T = TypeVar('T')
 
 from .bases import QABC, QAbstractYAMLObjectSingleton, QYAMLObjectSingleton
 from .better_abc import abstract_attribute

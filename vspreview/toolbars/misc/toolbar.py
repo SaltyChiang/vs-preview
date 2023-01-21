@@ -6,13 +6,13 @@ from typing import Any, Mapping
 
 from PyQt6.QtCore import Qt, QKeyCombination
 from PyQt6.QtWidgets import QComboBox, QFileDialog, QLabel, QSpacerItem
-from vstools import video_heuristics
 
 from ...core import (
     AbstractMainWindow, AbstractToolbar, CheckBox, CroppingInfo, HBoxLayout, LineEdit, PushButton, SpinBox, Stretch,
     Time, Timer, VBoxLayout, ViewMode, try_load
 )
 from ...core.custom import ComboBox, Switch
+from ...core.types.h265 import video_heuristics
 from ...models import GeneralModel
 from ...utils import qt_silent_call
 from .settings import MiscSettings

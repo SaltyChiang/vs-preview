@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, cast, no_type_check
+from typing import Any, TypeVar, cast, no_type_check
 
 from PyQt6 import sip
-from vstools import T
+T = TypeVar('T')
 from yaml import YAMLObject, YAMLObjectMetaclass
 
 from .better_abc import ABCMeta

@@ -1,12 +1,13 @@
 from __future__ import annotations
+from enum import IntEnum
 
 from PyQt6.QtCore import QPointF, Qt
 from PyQt6.QtGui import QColor, QMouseEvent, QPainter, QPaintEvent
 from PyQt6.QtWidgets import QLabel
 from vapoursynth import FrameProps
-from vstools import ChromaLocation, ColorRange, FieldBased, Matrix, Primaries, PropEnum, Transfer
 
 from ...core import AbstractMainWindow, ExtendedWidget, HBoxLayout, PushButton, Stretch, VBoxLayout
+from ...core.types.h265 import ChromaLocation, ColorRange, FieldBased, Matrix, Primaries, Transfer
 
 _frame_props_excluded_keys = {
     # vs internals
@@ -20,12 +21,15 @@ _frame_props_excluded_keys = {
 }
 
 
-def _create_enum_props_lut(enum: PropEnum, pretty_name: str) -> tuple[str, dict[str, dict[int, str]]]:
-    return enum.prop_key, {
+def _create_enum_props_lut(enum: IntEnum, pretty_name: str) -> tuple[str, dict[str, dict[int, str]]]:
+    return f'_{enum.__name__}', {
         pretty_name: {
-            idx: enum.from_param(idx).pretty_string if enum.is_valid(idx) else 'Invalid'
-            for idx in range(min(enum) - 1, max(enum) + 1)
+            item.value: item.name for item in enum
         }
+        # pretty_name: {
+        #     idx: enum.from_param(idx).pretty_string if enum.is_valid(idx) else 'Invalid'
+        #     for idx in range(min(enum) - 1, max(enum) + 1)
+        # }
     }
 
 

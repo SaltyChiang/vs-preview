@@ -13,7 +13,7 @@ from typing import Any, Callable, Final, NamedTuple, cast
 
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
 from PyQt6.QtWidgets import QComboBox, QLabel
-from vstools import vs
+import vapoursynth as vs
 
 from ...core import (
     AbstractMainWindow, AbstractToolbar, CheckBox, LineEdit, PictureType, ProgressBar, PushButton, main_window

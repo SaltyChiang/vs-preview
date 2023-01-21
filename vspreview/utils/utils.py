@@ -3,10 +3,14 @@ from __future__ import annotations
 from asyncio import get_event_loop_policy, get_running_loop
 from functools import partial, wraps
 from string import Template
-from typing import Any, Callable, cast
+from typing import Any, Callable, ParamSpec, TypeVar, cast
 
 from PyQt6.QtCore import QSignalBlocker
-from vstools import F, P, R, T, vs
+import vapoursynth as vs
+T = TypeVar('T')
+F = TypeVar('F', bound=Callable[..., Any])
+P = ParamSpec('P')
+R = TypeVar('R')
 
 from ..core import Frame, Time, main_window
 

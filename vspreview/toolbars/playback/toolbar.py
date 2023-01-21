@@ -11,7 +11,7 @@ from typing import Any, Mapping, cast
 
 from PyQt6.QtCore import Qt, QKeyCombination
 from PyQt6.QtWidgets import QComboBox, QSlider
-from vstools import vs
+import vapoursynth as vs
 
 from ...core import (
     AbstractMainWindow, AbstractToolbar, AudioOutput, CheckBox, DoubleSpinBox, Frame, PushButton, Time, Timer, try_load

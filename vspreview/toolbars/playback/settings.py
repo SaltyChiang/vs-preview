@@ -4,7 +4,6 @@ from typing import Any, Mapping
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QComboBox, QLabel
-from vstools import DitherType
 
 from ...core import AbstractToolbarSettings, Frame, HBoxLayout, SpinBox, try_load
 from ...core.custom import ComboBox
@@ -29,7 +28,7 @@ class PlaybackSettings(AbstractToolbarSettings):
 
         self.buffer_size_spinbox = SpinBox(self, 1, MainSettings.get_usable_cpus_count())
         self.dither_type_combobox = ComboBox[str](
-            self, model=GeneralModel[str]([x.value for x in DitherType][1:]),
+            self, model=GeneralModel[str](['none', 'ordered', 'random', 'error_diffusion']),
             currentIndex=3, sizeAdjustPolicy=QComboBox.SizeAdjustPolicy.AdjustToContents
         )
 
@@ -40,7 +39,7 @@ class PlaybackSettings(AbstractToolbarSettings):
 
     def set_defaults(self) -> None:
         self.buffer_size_spinbox.setValue(MainSettings.get_usable_cpus_count())
-        self.dither_type_combobox.setCurrentValue(DitherType.ERROR_DIFFUSION)
+        self.dither_type_combobox.setCurrentValue('error_diffusion')
 
     @property
     def playback_buffer_size(self) -> int:

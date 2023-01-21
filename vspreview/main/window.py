@@ -18,11 +18,12 @@ from PyQt6.QtGui import QCloseEvent, QColorSpace, QMoveEvent, QPalette, QPixmap,
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from PyQt6.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QLabel, QSizePolicy
 from vsengine import vpy  # type: ignore[import]
-from vstools import ChromaLocation, ColorRange, Matrix, Primaries, Transfer, vs
+import vapoursynth as vs
 
 from ..core import AbstractMainWindow, ExtendedWidget, Frame, Time, VBoxLayout, VideoOutput, ViewMode, try_load
 from ..core.custom import DragNavigator, GraphicsImageItem, GraphicsView, StatusBar
 from ..core.vsenv import _monkey_runpy_dicts, get_current_environment, make_environment
+from ..core.types.h265 import ChromaLocation, ColorRange, Matrix, Primaries, Transfer
 from ..models import VideoOutputs
 from ..toolbars import Toolbars
 from ..utils import fire_and_forget, set_status_label

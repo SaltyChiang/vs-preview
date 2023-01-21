@@ -7,7 +7,7 @@ from time import perf_counter
 
 from PyQt6.QtCore import QMetaObject, Qt
 from PyQt6.QtWidgets import QLabel
-from vstools import vs
+import vapoursynth as vs
 
 from ...core import AbstractMainWindow, AbstractToolbar, CheckBox, Frame, PushButton, Time, Timer
 from ...core.custom import FrameEdit

@@ -10,10 +10,12 @@ from typing import Any, Mapping, cast
 from PyQt6 import sip
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColorSpace, QImage, QPainter, QPixmap
-from vstools import ColorRange, DependencyNotFoundError, FramesLengthError, core, video_heuristics, vs
+import vapoursynth as vs
+from vapoursynth import core
 
 from ..abstracts import AbstractYAMLObject, main_window, try_load
 from .dataclasses import CroppingInfo, VideoOutputNode
+from .h265 import ColorRange, video_heuristics
 from .units import Frame, Time
 
 
@@ -138,30 +140,34 @@ class VideoOutput(AbstractYAMLObject):
             self.play_fps = float(play_fps)
 
             if timecodes:
-                if not isinstance(timecodes, list):
-                    try:
-                        from vsdeinterlace import get_timecodes, normalize_range_timecodes, normalize_timecodes
+                # if not isinstance(timecodes, list):
+                #     try:
+                #         from vsdeinterlace import get_timecodes, normalize_range_timecodes, normalize_timecodes
 
-                        if isinstance(timecodes, (str, Path)):
-                            timecodes = get_timecodes(self.source.clip, timecodes, tden, 'set_timecodes')
-                            timecodes = normalize_timecodes(timecodes)
-                        vsdeint_available = True
-                    except Exception:
-                        vsdeint_available = False
-                        raise DependencyNotFoundError('set_timecodes', 'vsdeinterlace')
+                #         if isinstance(timecodes, (str, Path)):
+                #             timecodes = get_timecodes(self.source.clip, timecodes, tden, 'set_timecodes')
+                #             timecodes = normalize_timecodes(timecodes)
+                #         vsdeint_available = True
+                #     except Exception:
+                #         vsdeint_available = False
+                #         raise DependencyNotFoundError('set_timecodes', 'vsdeinterlace')
 
-                if isinstance(timecodes, dict):
-                    if not vsdeint_available:
-                        raise DependencyNotFoundError('set_timecodes', 'vsdeinterlace')
-                    norm_timecodes = normalize_range_timecodes(timecodes, self.source.clip.num_frames, play_fps)
-                else:
-                    norm_timecodes = timecodes.copy()
+                # if isinstance(timecodes, dict):
+                #     if not vsdeint_available:
+                #         raise DependencyNotFoundError('set_timecodes', 'vsdeinterlace')
+                #     norm_timecodes = normalize_range_timecodes(timecodes, self.source.clip.num_frames, play_fps)
+                # else:
+                #     norm_timecodes = timecodes.copy()
+                norm_timecodes = timecodes.copy()
 
                 if len(norm_timecodes) != self.source.clip.num_frames:
-                    raise FramesLengthError(
-                        'set_timecodes', '', 'timecodes file length mismatch with clip\'s length!',
-                        reason=dict(timecodes=len(norm_timecodes), clip=self.source.clip.num_frames)
-                    )
+                    raise OverflowError(
+                        'set_timecodes'
+                        f'timecodes file length {len(norm_timecodes)} mismatch with clip\'s length {self.source.clip.num_frames}!')
+                    # raise FramesLengthError(
+                    #     'set_timecodes', '', 'timecodes file length mismatch with clip\'s length!',
+                    #     reason=dict(timecodes=len(norm_timecodes), clip=self.source.clip.num_frames)
+                    # )
 
                 self.main.norm_timecodes[index] = norm_timecodes
                 self.play_fps = float(norm_timecodes[self.last_showed_frame])
@@ -259,7 +265,7 @@ class VideoOutput(AbstractYAMLObject):
             clip = clip.std.RemoveFrameProps('_Matrix')
 
         if isinstance(resizer_kwargs['range_in'], ColorRange):
-            resizer_kwargs['range_in'] = resizer_kwargs['range_in'].value_zimg
+            resizer_kwargs['range_in'] = 2 - resizer_kwargs['range_in'].value
 
         assert clip.format
 

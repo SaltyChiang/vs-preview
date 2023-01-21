@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Generic, Iterator, Mapping, OrderedDict, TypeVar, cast
 
 from PyQt6.QtCore import QAbstractListModel, QModelIndex, Qt
-from vstools import vs
+import vapoursynth as vs
 
 from ..core import AbstractMainWindow, AudioOutput, QYAMLObject, VideoOutput, VideoOutputNode, main_window, try_load
 
