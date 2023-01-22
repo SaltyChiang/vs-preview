@@ -292,6 +292,7 @@ class MainWindow(AbstractMainWindow):
             if start_frame is not None:
                 self.switch_frame(Frame(start_frame))
 
+        # TODO: Check if this is necessary
         # with self.env:
         #     vs.register_on_destroy(self.gc_collect)
 

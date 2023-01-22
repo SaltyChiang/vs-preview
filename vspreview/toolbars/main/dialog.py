@@ -22,14 +22,11 @@ _frame_props_excluded_keys = {
 
 
 def _create_enum_props_lut(enum: IntEnum, pretty_name: str) -> tuple[str, dict[str, dict[int, str]]]:
+    values = set(item.value for item in enum)
     return f'_{enum.__name__}', {
         pretty_name: {
-            item.value: item.name for item in enum
+            idx: enum(idx).name if idx in values else 'INVALID' for idx in range(min(enum) - 1, max(enum) + 1)
         }
-        # pretty_name: {
-        #     idx: enum.from_param(idx).pretty_string if enum.is_valid(idx) else 'Invalid'
-        #     for idx in range(min(enum) - 1, max(enum) + 1)
-        # }
     }
 
 

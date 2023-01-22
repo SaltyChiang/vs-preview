@@ -179,10 +179,6 @@ class VideoOutput(AbstractYAMLObject):
                     raise OverflowError(
                         'set_timecodes'
                         f'timecodes file length {len(norm_timecodes)} mismatch with clip\'s length {self.source.clip.num_frames}!')
-                    # raise FramesLengthError(
-                    #     'set_timecodes', '', 'timecodes file length mismatch with clip\'s length!',
-                    #     reason=dict(timecodes=len(norm_timecodes), clip=self.source.clip.num_frames)
-                    # )
 
                 self.main.norm_timecodes[index] = norm_timecodes
                 self.play_fps = float(norm_timecodes[self.last_showed_frame])
@@ -371,6 +367,7 @@ class VideoOutput(AbstractYAMLObject):
             frame_image.setColorSpace(QColorSpace(QColorSpace.NamedColorSpace.SRgb))
             frame_image.convertToColorSpace(output_colorspace)
 
+        # TODO: Check if this is necessary
         # if not vs_frame.closed:
         #     vs_frame.close()
         #     del vs_frame
