@@ -9,7 +9,7 @@ from itertools import count
 from os.path import expanduser, expandvars
 from pathlib import Path
 from random import random
-from traceback import TracebackException
+from traceback import FrameSummary, TracebackException
 from typing import Any, Mapping, cast
 
 import yaml
@@ -17,12 +17,10 @@ from PyQt6.QtCore import QEvent, QRectF, pyqtSignal
 from PyQt6.QtGui import QCloseEvent, QColorSpace, QMoveEvent, QPalette, QPixmap, QShowEvent
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from PyQt6.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QLabel, QSizePolicy
-from vsengine import vpy  # type: ignore[import]
 import vapoursynth as vs
 
 from ..core import AbstractMainWindow, ExtendedWidget, Frame, Time, VBoxLayout, VideoOutput, ViewMode, try_load
 from ..core.custom import DragNavigator, GraphicsImageItem, GraphicsView, StatusBar
-from ..core.vsenv import _monkey_runpy_dicts, get_current_environment, make_environment
 from ..core.types.h265 import ChromaLocation, ColorRange, Matrix, Primaries, Transfer
 from ..models import VideoOutputs
 from ..toolbars import Toolbars
@@ -115,9 +113,10 @@ class MainWindow(AbstractMainWindow):
         self.move(int(desktop_size.width() * 0.15), int(desktop_size.height() * 0.075))
         self.setup_ui()
         self.storage_not_found = False
-        self.timecodes = dict[
-            int, dict[tuple[int | None, int | None], float | tuple[int, int] | Fraction] | list[float]
-        ]()
+        self.script_globals = dict[str, Any]()
+
+        self.timecodes = dict[int, dict[tuple[int | None, int | None],
+                                        float | tuple[int, int] | Fraction] | list[float]]()
         self.norm_timecodes = dict[int, list[float]]()
 
         self.user_output_names = {vs.VideoNode: {}, vs.AudioNode: {}, vs.RawNode: {}}
@@ -220,36 +219,47 @@ class MainWindow(AbstractMainWindow):
         sys.path.append(str(self.script_path.parent))
 
         # Rewrite args so external args will be forwarded correctly
-        argv_orig = None
         try:
             argv_orig = sys.argv
             sys.argv = [script_path.name]
         except AttributeError:
             pass
 
-        try:
-            self.env = vpy.variables(
-                dict(self.external_args),
-                environment=vs.get_current_environment(),
-                module_name="__vspreview__"
-            ).result()
-            self.env.module.__dict__['_monkey_runpy'] = random()
-            self.env = vpy.script(script_path, environment=self.env).result()
-        except vpy.ExecutionFailed as e:
-            logging.error(e.parent_error)
+        self.script_globals.clear()
+        self.script_globals = dict([('__file__', sys.argv[0])] + self.external_args)
 
-            te = TracebackException.from_exception(e.parent_error)
+        try:
+            ast_compiled = compile(self.script_path.read_bytes(), sys.argv[0], 'exec', optimize=2)
+
+            exec(ast_compiled, self.script_globals)
+        except BaseException as e:
+            logging.error(e)
+
+            te = TracebackException.from_exception(e)
+            # remove the first stack frame, which contains our exec() invocation
+            del te.stack[0]
+
+            # replace <string> with script path only for the first stack frames
+            # in order to keep intact exec() invocations down the stack
+            # that we're not concerned with
+            for i, frame in enumerate(te.stack):
+                if frame.filename == '<string>':
+                    te.stack[i] = FrameSummary(
+                        str(self.script_path), frame.lineno, frame.name
+                    )
+                else:
+                    break
             logging.error(''.join(te.format()))
 
             self.script_exec_failed = True
             return self.handle_script_error(
                 '\n'.join([
+                    'An error occured while evaluating script:',
                     str(e), 'See console output for details.'
                 ])
             )
         finally:
-            if argv_orig is not None:
-                sys.argv = argv_orig
+            sys.argv = argv_orig
             sys.path.pop()
 
         if len(vs.get_outputs()) == 0:
@@ -472,35 +482,12 @@ class MainWindow(AbstractMainWindow):
         if self.outputs:
             self.outputs.clear()
         self.gc_collect()
-        old_environment = get_current_environment()
 
-        self.clear_monkey_runpy()
-        make_environment()
-        old_environment.dispose()
-        self.gc_collect()
-
-        try:
-            self.load_script(self.script_path, reloading=True)
-        finally:
-            self.clear_monkey_runpy()
+        self.load_script(self.script_path, self.external_args, True)
 
         self.reload_after_signal.emit()
 
         self.show_message('Reloaded successfully')
-
-    def clear_monkey_runpy(self):
-        if self.env and '_monkey_runpy' in self.env.module.__dict__:
-            key = self.env.module.__dict__['_monkey_runpy']
-
-            if key in _monkey_runpy_dicts:
-                _monkey_runpy_dicts[key].clear()
-                _monkey_runpy_dicts.pop(key, None)
-            elif _monkey_runpy_dicts:
-                for env in _monkey_runpy_dicts.items():
-                    env.clear()
-                _monkey_runpy_dicts.clear()
-
-        self.gc_collect()
 
     def gc_collect(self) -> None:
         for i in range(3):
