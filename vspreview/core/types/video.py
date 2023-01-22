@@ -140,25 +140,40 @@ class VideoOutput(AbstractYAMLObject):
             self.play_fps = float(play_fps)
 
             if timecodes:
-                # if not isinstance(timecodes, list):
-                #     try:
-                #         from vsdeinterlace import get_timecodes, normalize_range_timecodes, normalize_timecodes
-
-                #         if isinstance(timecodes, (str, Path)):
-                #             timecodes = get_timecodes(self.source.clip, timecodes, tden, 'set_timecodes')
-                #             timecodes = normalize_timecodes(timecodes)
-                #         vsdeint_available = True
-                #     except Exception:
-                #         vsdeint_available = False
-                #         raise DependencyNotFoundError('set_timecodes', 'vsdeinterlace')
-
-                # if isinstance(timecodes, dict):
-                #     if not vsdeint_available:
-                #         raise DependencyNotFoundError('set_timecodes', 'vsdeinterlace')
-                #     norm_timecodes = normalize_range_timecodes(timecodes, self.source.clip.num_frames, play_fps)
-                # else:
-                #     norm_timecodes = timecodes.copy()
-                norm_timecodes = timecodes.copy()
+                if isinstance(timecodes, (str, Path)):
+                    file = Path(timecodes).resolve(True)
+                    with file.open() as f:
+                        timecode_format = f.readline().strip().lower()
+                        lines = [line.strip() for line in f.readlines()
+                                 if not line.startswith('#') and line.strip() != '']
+                    if timecode_format == '# timecode format v1':
+                        assert lines[0].lower().startswith(
+                            'assume'), "The second line with contents MUST be 'assume <fps>'"
+                        assumption = Fraction(round(float(lines[0].split()[1]) * tden), tden)
+                        timecodes = [assumption] * self.source.clip.num_frames
+                        for line in lines[1:]:
+                            start, end, fps = line.split(",")
+                            start, end, fps = int(start), int(end), float(fps)
+                            timecodes[start:end + 1] = [Fraction(round(fps * tden), tden)] * (end + 1 - start)
+                    elif timecode_format == '# timecode format v2':
+                        lines = [float(line) for line in lines[1:]]
+                        timecodes = [Fraction(round(1000 / (next - current) * tden), tden)
+                                     for current, next in zip(lines[:-1], lines[1:])]
+                        timecodes.append(timecodes[-1])
+                    else:
+                        raise ValueError(f'{file} with "{lines[0]}" as first line is not supported')
+                if isinstance(timecodes, dict):
+                    norm_timecodes = [Fraction(24000, 1001)] * self.source.clip.num_frames
+                    for (start, end), fps in timecodes.items():
+                        start = 0 if start is None else start
+                        end = self.source.clip.num_frames - 1 if end is None else end
+                        if isinstance(fps, float):
+                            fps = Fraction(round(fps * tden), tden)
+                        elif isinstance(fps, tuple):
+                            fps = Fraction(fps[0], fps[1])
+                        norm_timecodes[start:end + 1] = [fps] * (end + 1 - start)
+                else:
+                    norm_timecodes = timecodes.copy()
 
                 if len(norm_timecodes) != self.source.clip.num_frames:
                     raise OverflowError(
