@@ -265,7 +265,7 @@ class VideoOutput(AbstractYAMLObject):
             clip = clip.std.RemoveFrameProps('_Matrix')
 
         if isinstance(resizer_kwargs['range_in'], ColorRange):
-            resizer_kwargs['range_in'] = 2 - resizer_kwargs['range_in'].value
+            resizer_kwargs['range_in'] = 1 - resizer_kwargs['range_in'].value
 
         assert clip.format
 

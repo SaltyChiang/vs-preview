@@ -4,6 +4,7 @@ from typing import Any, Generic, Iterator, Mapping, OrderedDict, TypeVar, cast
 
 from PyQt6.QtCore import QAbstractListModel, QModelIndex, Qt
 import vapoursynth as vs
+from vapoursynth import core
 
 from ..core import AbstractMainWindow, AudioOutput, QYAMLObject, VideoOutput, VideoOutputNode, main_window, try_load
 
@@ -159,20 +160,29 @@ class VideoOutputs(Outputs[VideoOutput]):
         self.items = list(self._items)
 
     def switchToFFTSpectrumView(self, force_cache: bool = False) -> None:
-        try:
-            from vsdfft import FFTSpectrum
-        except ModuleNotFoundError:
+        if not hasattr(core, 'fftspectrum'):
             raise RuntimeError(
-                'vspreview: You can\'t chage to this view mode. You\'re missing the `vsdfft` package!'
+                '\nvspreview: You can\'t chage to this view mode. You\'re missing the `fftspectrum` plugin!'
+                '\n           Get it from https://github.com/Beatrice-Raws/FFTSpectrum'
             )
 
-        if not self._fft_spectr_items or force_cache:
-            max_width = max(*(x.width for x in self._items), 140)
-            max_height = max(*(x.height for x in self._items), 140)
+        def FFTSpectrum(clip):
+            clip_format = clip.format.replace(sample_type=vs.INTEGER, bits_per_sample=8)
+            frame_props = clip.get_frame(0).props
+            if '_ColorRange' in frame_props:
+                range_in = 1 - int(frame_props['_ColorRange'])
+            elif clip_format.color_family == vs.RGB:
+                range_in = 1
+            else:
+                range_in = 0
 
+            return clip.resize.Point(format=clip_format.id, range=1, range_in=range_in,
+                                     dither_type='error_diffusion').fftspectrum.FFTSpectrum()
+
+        if not self._fft_spectr_items or force_cache:
             self._fft_spectr_items = [
                 self.get_new_output(
-                    FFTSpectrum(old.source.clip, target_size=(max_width, max_height)), old
+                    FFTSpectrum(old.source.clip), old
                 ) for old in self._items
             ]
         else:
