@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Generic, Iterator, Mapping, OrderedDict, TypeVar, cast
+from typing import Any, Generic, Iterator, Mapping, OrderedDict, TypeVar
 
 from PyQt6.QtCore import QAbstractListModel, QModelIndex, Qt
 import vapoursynth as vs
 from vapoursynth import core
 
 from ..core import AbstractMainWindow, AudioOutput, QYAMLObject, VideoOutput, VideoOutputNode, main_window, try_load
+from ..core.types.h265 import Matrix
 
 T = TypeVar('T', VideoOutput, AudioOutput)
 
@@ -169,15 +170,29 @@ class VideoOutputs(Outputs[VideoOutput]):
         def FFTSpectrum(clip):
             clip_format = clip.format.replace(sample_type=vs.INTEGER, bits_per_sample=8)
             props = clip.get_frame(0).props
-            if '_ColorRange' in props:
-                range_in = 1 - int(props['_ColorRange'])
-            elif clip_format.color_family == vs.RGB:
-                range_in = 1
-            else:
-                range_in = 0
+            if clip_format.color_family == vs.RGB:
+                width = clip.width
+                height = clip.height
+                if width <= 1024 and height <= 576:
+                    if height == 576:
+                        matrix = Matrix.BT470BG
+                    else:
+                        matrix = Matrix.BT601
+                elif width <= 2048 and height <= 1536:
+                    matrix = Matrix.BT709
+                else:
+                    matrix = Matrix.BT2020
 
-            return clip.resize.Point(format=clip_format.id, range=1, range_in=range_in,
-                                     dither_type='error_diffusion').fftspectrum.FFTSpectrum()
+                clip = clip.resize.Point(format=vs.YUV444P8, matrix=matrix, range=1,
+                                         range_in=1, dither_type='error_diffusion')
+            elif '_ColorRange' in props:
+                clip = clip.resize.Point(format=clip_format.id, range=1, range_in=1 - int(props['_ColorRange']),
+                                         dither_type='error_diffusion')
+            else:
+                clip = clip.resize.Point(format=clip_format.id, range=1, range_in=0,
+                                         dither_type='error_diffusion')
+
+            return clip.fftspectrum.FFTSpectrum()
 
         if not self._fft_spectr_items or force_cache:
             self._fft_spectr_items = [
