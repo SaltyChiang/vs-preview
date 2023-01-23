@@ -168,9 +168,9 @@ class VideoOutputs(Outputs[VideoOutput]):
 
         def FFTSpectrum(clip):
             clip_format = clip.format.replace(sample_type=vs.INTEGER, bits_per_sample=8)
-            frame_props = clip.get_frame(0).props
-            if '_ColorRange' in frame_props:
-                range_in = 1 - int(frame_props['_ColorRange'])
+            props = clip.get_frame(0).props
+            if '_ColorRange' in props:
+                range_in = 1 - int(props['_ColorRange'])
             elif clip_format.color_family == vs.RGB:
                 range_in = 1
             else:

@@ -355,7 +355,7 @@ def video_heuristics(clip: vs.VideoNode, props: vs.FrameProps | None = None) -> 
 
     def from_video(clip: vs.VideoNode):
         matrix, primaries, transfer, color_range = from_res(clip)
-        props = clip.props
+        props = clip.get_frame(0).props
         matrix = Matrix(int(props['_Matrix'])) if '_Matrix' in props else matrix
         primaries = Primaries(int(props['_Primaries'])) if '_Primaries' in props else primaries
         transfer = Transfer(int(props['_Transfer'])) if '_Transfer' in props else transfer
