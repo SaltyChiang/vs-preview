@@ -587,7 +587,6 @@ class MainWindow(AbstractMainWindow):
         return self.toolbars.main.outputs
 
     def handle_script_error(self, message: str) -> None:
-        self.clear_monkey_runpy()
         self.script_error_dialog.label.setText(message)
         self.script_error_dialog.open()
 
